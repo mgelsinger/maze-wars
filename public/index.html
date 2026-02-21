@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAZE WARS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ═══════════════ MAIN MENU ═══════════════ -->
+  <div id="screen-menu" class="screen active">
+    <canvas id="menu-bg-canvas"></canvas>
+    <div class="menu-content">
+      <div class="menu-title-wrap">
+        <h1 class="game-title">MAZE<br>WARS</h1>
+      </div>
+      <nav class="menu-nav">
+        <button class="menu-btn primary" id="btn-play">PLAY</button>
+        <button class="menu-btn" id="btn-leaderboard">LEADERBOARDS</button>
+        <button class="menu-btn" id="btn-profile">PROFILE</button>
+        <button class="menu-btn" id="btn-ai-api">AI API</button>
+      </nav>
+      <div class="menu-username-bar">
+        <span class="username-label">PILOT:</span>
+        <span id="menu-username" class="username-value">GHOST</span>
+        <button id="btn-change-name" class="small-btn">CHANGE</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ LOBBY ═══════════════ -->
+  <div id="screen-lobby" class="screen">
+
+    <!-- Panel: Mode Select -->
+    <div class="lobby-panel lobby-content" data-panel="mode">
+      <h2 class="screen-title">SELECT MISSION</h2>
+      <div class="lobby-mode-cards">
+        <div class="lobby-card" id="lobby-card-solo">
+          <div class="lobby-card-icon">◈</div>
+          <div class="lobby-card-title">SOLO RUN</div>
+          <div class="lobby-card-desc">Race alone against the clock</div>
+        </div>
+        <div class="lobby-card" id="lobby-card-vs">
+          <div class="lobby-card-icon">⚔</div>
+          <div class="lobby-card-title">VS MODE</div>
+          <div class="lobby-card-desc">Real-time 1v1 race</div>
+        </div>
+        <div class="lobby-card" id="lobby-card-matchmaking">
+          <div class="lobby-card-icon">◎</div>
+          <div class="lobby-card-title">FIND MATCH</div>
+          <div class="lobby-card-desc">Auto-matched by ELO rank</div>
+        </div>
+        <div class="lobby-card" id="lobby-card-vs-bot">
+          <div class="lobby-card-icon">◉</div>
+          <div class="lobby-card-title">VS BOT</div>
+          <div class="lobby-card-desc">Challenge a built-in AI</div>
+        </div>
+      </div>
+      <button class="menu-btn secondary" id="btn-lobby-to-menu">◄ BACK</button>
+    </div>
+
+    <!-- Panel: Solo Config -->
+    <div class="lobby-panel lobby-content hidden" data-panel="solo" id="panel-solo">
+      <h2 class="screen-title">SOLO RUN</h2>
+      <div class="maze-size-selector">
+        <div class="selector-label">MAZE SIZE</div>
+        <div class="size-options">
+          <button class="size-btn active" data-level="1">SMALL<span>15×15</span></button>
+          <button class="size-btn" data-level="4">MEDIUM<span>21×21</span></button>
+          <button class="size-btn" data-level="7">LARGE<span>31×31</span></button>
+          <button class="size-btn" data-level="10">HUGE<span>41×41</span></button>
+        </div>
+      </div>
+      <div class="lobby-actions">
+        <button class="menu-btn primary" id="btn-launch-solo">LAUNCH</button>
+        <button class="menu-btn secondary" id="btn-solo-back">◄ BACK</button>
+      </div>
+    </div>
+
+    <!-- Panel: VS Choose (create or join) -->
+    <div class="lobby-panel lobby-content hidden" data-panel="vs-choose" id="panel-vs-choose">
+      <h2 class="screen-title">VS MODE</h2>
+
+      <div class="vs-create-section">
+        <div class="vs-section-label">HOST A ROOM</div>
+        <div class="maze-size-selector">
+          <div class="selector-label">MAZE SIZE</div>
+          <div class="size-options">
+            <button class="size-btn active" data-level="1">SMALL<span>15×15</span></button>
+            <button class="size-btn" data-level="4">MEDIUM<span>21×21</span></button>
+            <button class="size-btn" data-level="7">LARGE<span>31×31</span></button>
+            <button class="size-btn" data-level="10">HUGE<span>41×41</span></button>
+          </div>
+        </div>
+        <button class="menu-btn primary" id="btn-create-room">CREATE ROOM</button>
+      </div>
+
+      <div class="vs-divider">— OR —</div>
+
+      <div class="vs-join-section">
+        <div class="vs-section-label">JOIN A ROOM</div>
+        <div class="join-row">
+          <input type="text" id="room-code-input" class="room-code-input" maxlength="6"
+                 placeholder="ROOM CODE" autocomplete="off" spellcheck="false">
+          <button class="menu-btn" id="btn-join-confirm">JOIN</button>
+        </div>
+      </div>
+
+      <div class="lobby-error hidden" id="lobby-error">Error</div>
+      <button class="menu-btn secondary" id="btn-vs-back">◄ BACK</button>
+    </div>
+
+    <!-- Panel: VS Waiting (created room, waiting for opponent) -->
+    <div class="lobby-panel lobby-content hidden" data-panel="vs-waiting">
+      <h2 class="screen-title">ROOM CREATED</h2>
+      <div class="room-code-wrap">
+        <div class="section-label">SHARE THIS CODE WITH A FRIEND</div>
+        <div class="room-code-big" id="room-code-display">------</div>
+        <button class="small-btn" id="btn-copy-code">COPY</button>
+      </div>
+      <div class="waiting-status">
+        <div class="waiting-dots-text">Waiting for opponent</div>
+        <div class="waiting-anim">
+          <span class="dot-pulse"></span>
+          <span class="dot-pulse" style="animation-delay:.2s"></span>
+          <span class="dot-pulse" style="animation-delay:.4s"></span>
+        </div>
+      </div>
+      <button class="menu-btn secondary" id="btn-cancel-room">CANCEL</button>
+    </div>
+
+    <!-- Panel: VS Connected (both in room) -->
+    <div class="lobby-panel lobby-content hidden" data-panel="vs-connected">
+      <h2 class="screen-title">OPPONENT CONNECTED</h2>
+      <div class="vs-matchup-box">
+        <div class="vs-room-code">ROOM: <span id="connected-room-code">------</span></div>
+        <div class="vs-matchup">
+          <div class="vs-pilot you">
+            <div class="vs-pilot-label">YOU</div>
+            <div class="vs-pilot-name" id="vs-your-name">GHOST</div>
+          </div>
+          <div class="vs-center-text">VS</div>
+          <div class="vs-pilot opponent">
+            <div class="vs-pilot-label">OPPONENT</div>
+            <div class="vs-pilot-name" id="vs-opponent-name">---</div>
+          </div>
+        </div>
+      </div>
+      <div class="lobby-actions">
+        <button class="menu-btn primary" id="btn-ready">READY!</button>
+        <button class="menu-btn secondary" id="btn-vs-leave">LEAVE</button>
+      </div>
+    </div>
+
+    <!-- Panel: VS BOT difficulty selector -->
+    <div class="lobby-panel lobby-content hidden" data-panel="vs-bot" id="panel-vs-bot">
+      <h2 class="screen-title">VS BOT</h2>
+      <div class="vs-bot-section">
+        <div class="selector-label">DIFFICULTY</div>
+        <div class="diff-options">
+          <button class="diff-btn" data-diff="easy">
+            <span class="diff-name">GLITCH</span>
+            <span class="diff-label">EASY</span>
+            <span class="diff-desc">Random errors, slow</span>
+          </button>
+          <button class="diff-btn active" data-diff="medium">
+            <span class="diff-name">CIPHER</span>
+            <span class="diff-label">MEDIUM</span>
+            <span class="diff-desc">A* pathing, grabs powerups</span>
+          </button>
+          <button class="diff-btn" data-diff="hard">
+            <span class="diff-name">NEXUS</span>
+            <span class="diff-label">HARD</span>
+            <span class="diff-desc">Perfect play, strategic freeze</span>
+          </button>
+        </div>
+      </div>
+      <div class="vs-bot-section">
+        <div class="selector-label">MAZE SIZE</div>
+        <div class="size-options">
+          <button class="size-btn active" data-level="1">SMALL<span>15×15</span></button>
+          <button class="size-btn" data-level="4">MEDIUM<span>21×21</span></button>
+          <button class="size-btn" data-level="7">LARGE<span>31×31</span></button>
+          <button class="size-btn" data-level="10">HUGE<span>41×41</span></button>
+        </div>
+      </div>
+      <div class="lobby-actions">
+        <button class="menu-btn primary" id="btn-launch-bot">LAUNCH</button>
+        <button class="menu-btn secondary" id="btn-vs-bot-back">◄ BACK</button>
+      </div>
+    </div>
+
+    <!-- Panel: Matchmaking (searching) -->
+    <div class="lobby-panel lobby-content hidden" data-panel="matchmaking">
+      <h2 class="screen-title">FIND MATCH</h2>
+      <div class="waiting-status">
+        <div class="matchmaking-status-text" id="matchmaking-status">SEARCHING...</div>
+        <div class="waiting-anim">
+          <span class="dot-pulse"></span>
+          <span class="dot-pulse" style="animation-delay:.2s"></span>
+          <span class="dot-pulse" style="animation-delay:.4s"></span>
+        </div>
+        <div class="matchmaking-hint">Matching by ELO rating. Range expands over time.</div>
+      </div>
+      <button class="menu-btn secondary" id="btn-cancel-matchmaking">CANCEL</button>
+    </div>
+
+  </div><!-- /screen-lobby -->
+
+  <!-- ═══════════════ GAME ═══════════════ -->
+  <div id="screen-game" class="screen">
+    <div id="sidebar">
+      <div class="sidebar-brand">MW</div>
+
+      <div class="sidebar-section">
+        <div class="section-label">TIME</div>
+        <div class="timer-display" id="timer-display">00:00.000</div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="stat-grid">
+          <div class="stat-item">
+            <div class="stat-label">LEVEL</div>
+            <div class="stat-value" id="level-display">1</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">SCORE</div>
+            <div class="stat-value" id="score-display">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">STREAK</div>
+            <div class="stat-value" id="streak-display">0</div>
+          </div>
+          <div class="stat-item">
+            <div class="stat-label">ELO</div>
+            <div class="stat-value" id="elo-display">1000</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">EFFECTS</div>
+        <div id="effects-display" class="effects-display">
+          <span class="no-effects">— NONE —</span>
+        </div>
+      </div>
+
+      <div class="sidebar-section">
+        <div class="section-label">HELD <span class="key-hint">[SPACE]</span></div>
+        <div id="held-display" class="effects-display">
+          <span class="no-effects">— NONE —</span>
+        </div>
+      </div>
+
+      <!-- Opponent panel — shown only in VS mode -->
+      <div class="sidebar-section" id="opponent-panel" style="display:none">
+        <div class="section-label">OPPONENT</div>
+        <div class="opponent-hud">
+          <div class="opponent-hud-name" id="opponent-name-hud">---</div>
+          <div class="opponent-hud-status" id="opponent-hud-status">● IN RACE</div>
+        </div>
+      </div>
+
+      <div class="sidebar-section" id="minimap-section">
+        <div class="section-label">MINIMAP</div>
+        <canvas id="minimap-canvas" width="200" height="200"></canvas>
+      </div>
+
+      <button class="sidebar-quit-btn" id="btn-quit-game">◄ QUIT</button>
+    </div>
+
+    <div id="game-area">
+      <!-- Mobile HUD overlay (shown when sidebar is hidden on small screens) -->
+      <div id="mobile-hud" class="mobile-hud">
+        <div class="mhud-left">
+          <div class="mhud-timer" id="mhud-timer">00:00.000</div>
+          <div class="mhud-info" id="mhud-info">LVL 1</div>
+        </div>
+        <div class="mhud-right">
+          <div class="mhud-held" id="mhud-held"></div>
+          <button class="mhud-quit" id="mhud-quit">✕ QUIT</button>
+        </div>
+      </div>
+
+      <!-- Countdown overlay -->
+      <div id="countdown-overlay" class="game-overlay hidden">
+        <div class="countdown-number" id="countdown-num">3</div>
+      </div>
+
+      <!-- Win/Lose overlay (VS mode) -->
+      <div id="outcome-overlay" class="game-overlay hidden">
+        <div class="outcome-text" id="outcome-text">YOU WIN!</div>
+      </div>
+
+      <!-- Freeze overlay -->
+      <div id="freeze-overlay" class="game-overlay hidden">
+        <div class="freeze-text">FROZEN</div>
+      </div>
+
+      <canvas id="game-canvas"></canvas>
+
+      <!-- Touch D-pad (mobile) -->
+      <div id="dpad" class="dpad">
+        <button class="dpad-btn dpad-up"    data-dir="n">▲</button>
+        <button class="dpad-btn dpad-left"  data-dir="w">◄</button>
+        <button class="dpad-btn dpad-right" data-dir="e">►</button>
+        <button class="dpad-btn dpad-down"  data-dir="s">▼</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ RESULTS ═══════════════ -->
+  <div id="screen-results" class="screen">
+    <div class="results-content">
+      <div class="results-header">
+        <div id="results-outcome" class="results-outcome">MAZE CLEARED!</div>
+        <div class="results-title-sub" id="results-sub">RUN COMPLETE</div>
+      </div>
+
+      <!-- VS: side-by-side cards (hidden in solo) -->
+      <div id="vs-results-cards" class="vs-results-cards hidden">
+        <div class="results-card" id="vs-card-you">
+          <div class="results-card-crown hidden" id="res-crown-you">♛</div>
+          <div class="results-card-name" id="res-name-you">YOU</div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">TIME</span>
+            <span class="results-stat-value" id="res-time-you">--:--</span>
+          </div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">⚡ POWERUPS</span>
+            <span class="results-stat-value" id="res-pu-you">0</span>
+          </div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">❄ FREEZES</span>
+            <span class="results-stat-value" id="res-fr-you">0</span>
+          </div>
+        </div>
+        <div class="vs-card-divider">VS</div>
+        <div class="results-card" id="vs-card-opp">
+          <div class="results-card-crown hidden" id="res-crown-opp">♛</div>
+          <div class="results-card-name" id="res-name-opp">OPPONENT</div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">TIME</span>
+            <span class="results-stat-value" id="res-time-opp">--:--</span>
+          </div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">⚡ POWERUPS</span>
+            <span class="results-stat-value" id="res-pu-opp">0</span>
+          </div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">❄ FREEZES</span>
+            <span class="results-stat-value" id="res-fr-opp">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Solo: single card -->
+      <div class="results-cards" id="solo-results-card">
+        <div class="results-card">
+          <div class="results-card-name" id="results-player-name">GHOST</div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">TIME</span>
+            <span class="results-stat-value" id="res-time">00:00.000</span>
+          </div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">SCORE</span>
+            <span class="results-stat-value accent" id="res-score">0</span>
+          </div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">EFFICIENCY</span>
+            <span class="results-stat-value" id="res-efficiency">0%</span>
+          </div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">CELLS VISITED</span>
+            <span class="results-stat-value" id="res-cells">0</span>
+          </div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">OPTIMAL PATH</span>
+            <span class="results-stat-value" id="res-optimal">0</span>
+          </div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">⚡ POWERUPS</span>
+            <span class="results-stat-value" id="res-powerups">0</span>
+          </div>
+          <div class="results-stat-row">
+            <span class="results-stat-label">❄ FREEZES USED</span>
+            <span class="results-stat-value" id="res-freezes">0</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="results-score-breakdown" id="solo-breakdown">
+        <div class="section-label">SCORE BREAKDOWN</div>
+        <div class="breakdown-row"><span>Base Completion</span><span id="res-base">+1000</span></div>
+        <div class="breakdown-row"><span>Time Bonus</span><span id="res-time-bonus">+0</span></div>
+        <div class="breakdown-row"><span>Efficiency Bonus</span><span id="res-eff-bonus">+0</span></div>
+        <div class="breakdown-row"><span>Powerup Bonus</span><span id="res-pu-bonus">+0</span></div>
+        <div class="breakdown-row"><span>Freeze Bonus</span><span id="res-freeze-bonus">+0</span></div>
+        <div class="breakdown-row total"><span>TOTAL</span><span id="res-total">0</span></div>
+      </div>
+
+      <div id="res-elo-delta" class="res-elo-delta hidden"></div>
+
+      <div class="results-actions">
+        <button class="menu-btn primary" id="btn-play-again">PLAY AGAIN</button>
+        <button class="menu-btn" id="btn-results-lobby">CHANGE MAZE</button>
+        <button class="menu-btn secondary" id="btn-results-menu">MAIN MENU</button>
+        <!-- VS only -->
+        <button class="menu-btn primary hidden" id="btn-rematch">REMATCH</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ LEADERBOARD ═══════════════ -->
+  <div id="screen-leaderboard" class="screen">
+    <div class="leaderboard-content">
+      <h2 class="screen-title">LEADERBOARDS</h2>
+      <div class="lb-tabs" id="lb-tabs"><!-- tabs injected by JS --></div>
+      <div class="lb-table-wrap">
+        <table class="lb-table">
+          <thead>
+            <tr>
+              <th class="lb-rank">#</th>
+              <th class="lb-name">PILOT</th>
+              <th class="lb-value" id="lb-col-value">VALUE</th>
+              <th class="lb-games">GAMES</th>
+            </tr>
+          </thead>
+          <tbody id="lb-tbody">
+            <tr><td colspan="4" class="lb-loading">LOADING...</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="lb-actions">
+        <button class="menu-btn secondary" id="btn-lb-refresh">↺ REFRESH</button>
+        <button class="menu-btn secondary" id="btn-lb-back">◄ BACK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ PROFILE ═══════════════ -->
+  <div id="screen-profile" class="screen">
+    <div class="profile-content">
+      <h2 class="screen-title">PROFILE</h2>
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="profile-username" id="prof-username">GHOST</div>
+          <div class="profile-elo-badge"><span id="prof-elo">1000</span> ELO</div>
+        </div>
+        <div class="prof-status" id="prof-status"></div>
+        <div class="profile-stats-grid">
+          <div class="profile-stat-item">
+            <div class="profile-stat-label">GAMES PLAYED</div>
+            <div class="profile-stat-value" id="prof-games">0</div>
+          </div>
+          <div class="profile-stat-item">
+            <div class="profile-stat-label">WINS</div>
+            <div class="profile-stat-value" id="prof-wins">0</div>
+          </div>
+          <div class="profile-stat-item">
+            <div class="profile-stat-label">WIN RATE</div>
+            <div class="profile-stat-value" id="prof-winrate">0%</div>
+          </div>
+          <div class="profile-stat-item">
+            <div class="profile-stat-label">WIN STREAK</div>
+            <div class="profile-stat-value" id="prof-streak">0</div>
+          </div>
+          <div class="profile-stat-item">
+            <div class="profile-stat-label">BEST STREAK</div>
+            <div class="profile-stat-value" id="prof-best-streak">0</div>
+          </div>
+          <div class="profile-stat-item">
+            <div class="profile-stat-label">⚡ POWERUPS</div>
+            <div class="profile-stat-value" id="prof-powerups">0</div>
+          </div>
+          <div class="profile-stat-item">
+            <div class="profile-stat-label">❄ FREEZES</div>
+            <div class="profile-stat-value" id="prof-freezes">0</div>
+          </div>
+        </div>
+        <div class="profile-bests">
+          <div class="section-label">BEST SOLO TIMES</div>
+          <div class="profile-best-row"><span>SMALL (15×15)</span><span id="prof-best-15">--:--</span></div>
+          <div class="profile-best-row"><span>MEDIUM (21×21)</span><span id="prof-best-21">--:--</span></div>
+          <div class="profile-best-row"><span>LARGE (31×31)</span><span id="prof-best-31">--:--</span></div>
+          <div class="profile-best-row"><span>HUGE (41×41)</span><span id="prof-best-41">--:--</span></div>
+        </div>
+      </div>
+      <div class="lb-actions">
+        <button class="menu-btn secondary" id="btn-prof-edit">CHANGE NAME</button>
+        <button class="menu-btn secondary" id="btn-prof-refresh">↺ REFRESH</button>
+        <button class="menu-btn secondary" id="btn-prof-back">◄ BACK</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ API DOCS ═══════════════ -->
+  <div id="screen-apidocs" class="screen">
+    <div class="apidocs-content">
+      <h2 class="screen-title">EXTERNAL AI BOT API</h2>
+      <div class="apidocs-body">
+
+        <div class="apidocs-section">
+          <div class="apidocs-section-title">OVERVIEW</div>
+          <p>Connect your own AI to MAZE WARS via Socket.IO. Your bot competes against human players in real-time races with full powerup support.</p>
+        </div>
+
+        <div class="apidocs-section">
+          <div class="apidocs-section-title">CONNECTION</div>
+          <pre class="apidocs-code">const socket = io('http://localhost:3000', {
+  auth: { botName: 'MY_BOT', apiKey: 'optional' }
+});</pre>
+        </div>
+
+        <div class="apidocs-section">
+          <div class="apidocs-section-title">EVENTS — BOT → SERVER</div>
+          <div class="apidocs-events">
+            <div class="apidocs-event"><span class="ev-name">find-match</span><span class="ev-desc">Join public matchmaking queue</span></div>
+            <div class="apidocs-event"><span class="ev-name">join-room</span><span class="ev-desc">{ roomCode } — join a specific room</span></div>
+            <div class="apidocs-event"><span class="ev-name">player-ready</span><span class="ev-desc">Signal ready to start</span></div>
+            <div class="apidocs-event"><span class="ev-name">player-input</span><span class="ev-desc">{ direction: 'n'|'s'|'e'|'w', seq: number }</span></div>
+            <div class="apidocs-event"><span class="ev-name">use-powerup</span><span class="ev-desc">{ powerupType: 'speed_boost'|'freeze' }</span></div>
+            <div class="apidocs-event"><span class="ev-name">leave-room</span><span class="ev-desc">Leave current room</span></div>
+          </div>
+        </div>
+
+        <div class="apidocs-section">
+          <div class="apidocs-section-title">EVENTS — SERVER → BOT</div>
+          <div class="apidocs-events">
+            <div class="apidocs-event"><span class="ev-name">game-start</span><span class="ev-desc">{ seed, level, yourId, yourPosition, opponentName, <b>maze</b> }</span></div>
+            <div class="apidocs-event"><span class="ev-name">game-state</span><span class="ev-desc">{ tick, elapsed, players[{id,x,y,effects,powerupsHeld}], powerups }</span></div>
+            <div class="apidocs-event"><span class="ev-name">move-confirmed</span><span class="ev-desc">{ seq, position: {x,y} }</span></div>
+            <div class="apidocs-event"><span class="ev-name">move-rejected</span><span class="ev-desc">{ seq, correctPosition: {x,y} }</span></div>
+            <div class="apidocs-event"><span class="ev-name">game-over</span><span class="ev-desc">{ winnerId, stats }</span></div>
+          </div>
+        </div>
+
+        <div class="apidocs-section">
+          <div class="apidocs-section-title">REGISTER YOUR BOT</div>
+          <pre class="apidocs-code">POST /api/bots/register
+{ "botName": "MY_BOT" }
+→ { "id": "...", "elo": 1000, "botName": "MY_BOT" }</pre>
+        </div>
+
+        <div class="apidocs-section">
+          <div class="apidocs-section-title">MINIMAL BOT EXAMPLE</div>
+          <pre class="apidocs-code">const io = require('socket.io-client');
+const s = io('http://localhost:3000', {
+  auth: { botName: 'MYBOT' }
+});
+let myId, maze;
+s.on('game-start', d => {
+  myId = d.yourId; maze = d.maze;
+  s.emit('player-ready');
+});
+s.on('game-state', ({ players }) => {
+  const me = players.find(p => p.id === myId);
+  if (!me) return;
+  // simple: always try to go south then east
+  const dirs = ['s','e','n','w'];
+  for (const dir of dirs) {
+    const cell = maze.cells[me.y * maze.width + me.x];
+    if (!cell.walls[dir]) {
+      s.emit('player-input', { direction: dir, seq: Date.now() });
+      break;
+    }
+  }
+});</pre>
+        </div>
+
+      </div>
+      <button class="menu-btn secondary" id="btn-apidocs-back">◄ BACK</button>
+    </div>
+  </div>
+
+  <!-- ═══════════════ USERNAME MODAL ═══════════════ -->
+  <div id="modal-username" class="modal hidden">
+    <div class="modal-box">
+      <div class="modal-title">ENTER PILOT NAME</div>
+      <input type="text" id="username-input" class="modal-input" maxlength="16"
+             placeholder="PILOT NAME" autocomplete="off" spellcheck="false">
+      <div class="modal-actions">
+        <button class="menu-btn primary" id="btn-username-confirm">CONFIRM</button>
+        <button class="menu-btn secondary" id="btn-username-cancel">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Socket.IO client (served by the server automatically) -->
+  <script src="/socket.io/socket.io.js"></script>
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
